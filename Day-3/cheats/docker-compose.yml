@@ -1,0 +1,42 @@
+version: "3"
+services:
+  
+  db:
+    container_name: askbob-pg
+    image: postgres
+    volumes:
+      - askbob-data:/var/lib/postgresql/data
+    networks:
+      - askbob-network
+
+  setup:
+    container_name: askbob-db-setup
+    build: .
+    image: askbob/webapp
+    command: ["rake", "db:create", "db:migrate"]
+    env_file:
+      - .env
+    networks:
+      - askbob-network
+    depends_on:
+      - db
+
+  web:
+    container_name: askbob-webapp
+    build: .
+    image: askbob/webapp
+    env_file:
+      - .env
+    ports:
+      - 3000:3000
+    networks:
+      - askbob-network
+    depends_on:
+      - db
+      - setup
+
+networks:
+  askbob-network:
+
+volumes:
+  askbob-data:
